@@ -2,10 +2,9 @@
 
 > CLI tool for generating and managing software architecture using AI
 
-[![CI](https://github.com/epic-claude/epic-claude/actions/workflows/ci.yml/badge.svg)](https://github.com/epic-claude/epic-claude/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/epic-claude.svg)](https://pypi.org/project/epic-claude/)
+[![Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/epic-claude/epic-claude/releases)
 
 Describe what you want to build. `epic` asks the right questions, proposes a tech stack, generates a complete architecture, and syncs it into your project so Claude Code always has full context.
 
@@ -78,7 +77,8 @@ source ~/.bashrc    # or ~/.zshrc, or restart terminal
 ## First-time setup
 
 ```bash
-# 1. Initialise global registry (~/.epic/)
+# 1. Initialise the global registry (~/.epic/)
+#    This creates the global state directory — run once per machine
 epic init
 
 # 2. Set your Anthropic API key — never stored in config files
@@ -89,10 +89,13 @@ export ANTHROPIC_API_KEY=sk-ant-...
 epic doctor
 ```
 
+> **Note:** `epic init` sets up the global registry (`~/.epic/`). It does not create a
+> project. To start a project, `cd` into your project directory and run `epic plan`.
+
 `epic doctor` output when everything is ready:
 
 ```
-  ✓ OK   Python version:    3.11.x
+  ✓ OK   Python version:    3.10.x (or higher)
   ✓ OK   Home directory:    ~/.epic
   ✓ OK   config.json
   ✓ Set  ANTHROPIC_API_KEY: sk-...xxxx
@@ -182,8 +185,9 @@ epic plan --config file.yaml       # Non-interactive (CI)
 epic plan --yes                    # Skip confirmations
 epic plan --no-sync                # Stop before CLAUDE.md sync
 
-epic generate                      # Re-run architect agent
+epic generate                      # Re-run architect agent (all 5 artifacts)
 epic generate --scope prd          # Regenerate one artifact
+epic generate --scope api_spec     # Valid: prd, api_spec, db_schema, tech_stack, boundaries
 epic generate --yes                # Skip assumption prompts (CI)
 
 epic sync                          # Sync architecture to CLAUDE.md
@@ -253,8 +257,11 @@ All commands accept:
 No epic project found in this directory.
 
 Start here:
-  epic init
   epic plan "describe your project"
+
+Or switch to an existing project:
+  epic project list
+  epic project switch
 ```
 
 No silent fallbacks. No wrong-project accidents.
@@ -307,7 +314,7 @@ Rules:
 ### State layout
 
 ```
-~/.epic/                            ← Global registry (one install, all projects)
+~/.epic/                            ← Global registry — created by: epic init
 ├── registry.db                     ← Project index
 ├── config.json                     ← Settings (no credentials ever stored here)
 ├── server.log                      ← MCP server log (auto-rotated)
@@ -323,9 +330,9 @@ Rules:
         │   └── boundaries.md
         └── claude_md_backups/      ← Pre-sync backups (30-day retention)
 
-your-project/
-└── .epic/
-    └── project.json                ← Local marker (what epic uses for detection)
+your-project/                       ← Your code repository
+└── .epic/                          ← Created by: epic plan
+    └── project.json                ← Local marker (used for project detection)
 ```
 
 State authority (highest → lowest): `memory.db → architecture/ → CLAUDE.md → registry.db`
@@ -381,7 +388,7 @@ epic doctor
 |---|---|
 | `epic: command not found` | `pipx ensurepath` then restart terminal |
 | `ANTHROPIC_API_KEY is not set` | `export ANTHROPIC_API_KEY=sk-ant-...` |
-| `No epic project found` | `cd` to project root, or run `epic init` then `epic plan` |
+| `No epic project found` | `cd` to your project root, then run `epic plan "describe your app"` |
 | Stack not confirmed error | `epic tech show` then `epic tech confirm` |
 | Manual edit detected | `epic sync --force` to overwrite, or move edits outside the managed section markers |
 | Schema mismatch after upgrade | `epic system migrate` |
