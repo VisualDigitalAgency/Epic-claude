@@ -2,9 +2,11 @@
 
 > CLI tool for generating and managing software architecture using AI
 
+[![CI](https://github.com/VisualDigitalAgency/Epic-claude/actions/workflows/blank.yml/badge.svg?branch=main)](https://github.com/VisualDigitalAgency/Epic-claude/actions/workflows/blank.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/epic-claude/epic-claude/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-green.svg)](https://github.com/VisualDigitalAgency/Epic-claude/releases/tag/v1.1.0)
+[![PyPI](https://img.shields.io/badge/PyPI-coming%20soon-lightgrey.svg)](#install)
 
 Describe what you want to build. `epic` asks the right questions, proposes a tech stack, generates a complete architecture, and syncs it into your project so Claude Code always has full context.
 
@@ -43,24 +45,40 @@ Every artifact is validated before it touches disk. All fail together or succeed
 
 ## Install
 
-### Recommended — pipx
+> **Note:** epic-claude is not yet on PyPI. Install directly from the GitHub release below.
+> PyPI publishing is planned — see [Coming soon](#coming-soon).
+
+### Current method — install from GitHub release
+
+**Step 1** — Download the wheel from the [Releases page](https://github.com/VisualDigitalAgency/Epic-claude/releases/tag/v1.1.0):
+
+```
+epic_claude-1.1.0-py3-none-any.whl
+```
+
+**Step 2** — Install with pipx (recommended):
 
 ```bash
+# Install pipx if you don't have it
 pip install --user pipx && pipx ensurepath
-pipx install epic-claude
+
+# Install the wheel
+pipx install epic_claude-1.1.0-py3-none-any.whl
+
+# Verify
 epic version
 ```
 
-### Alternative — uv
+Or with pip:
 
 ```bash
-uv tool install epic-claude
+pip install epic_claude-1.1.0-py3-none-any.whl
 ```
 
-### Alternative — pip
+Or directly from the GitHub repo:
 
 ```bash
-pip install epic-claude
+pipx install git+https://github.com/VisualDigitalAgency/Epic-claude.git
 ```
 
 **Why pipx?** Global CLI tools should be isolated. pipx gives `epic` its own environment — no conflicts with your project venv, ever.
@@ -70,6 +88,21 @@ pip install epic-claude
 ```bash
 pipx ensurepath
 source ~/.bashrc    # or ~/.zshrc, or restart terminal
+```
+
+### Coming soon — PyPI install *(not yet available)*
+
+Once published to PyPI, installation will be:
+
+```bash
+# pipx (recommended)
+pipx install epic-claude
+
+# uv
+uv tool install epic-claude
+
+# pip
+pip install epic-claude
 ```
 
 ---
@@ -370,13 +403,28 @@ When connected via Claude Code, all 18 tools are available:
 
 ## Upgrading
 
+### Current method — reinstall from new release
+
+Download the latest wheel from the [Releases page](https://github.com/VisualDigitalAgency/Epic-claude/releases/tag/v1.1.0), then:
+
 ```bash
-pipx upgrade epic-claude
+# Reinstall with pipx
+pipx install --force epic_claude-<new-version>-py3-none-any.whl
 
 # Always run after upgrade — applies any schema changes
 epic system migrate
 
 # Confirm everything still works
+epic doctor
+```
+
+### Coming soon — PyPI upgrade *(not yet available)*
+
+Once on PyPI, upgrading will be:
+
+```bash
+pipx upgrade epic-claude
+epic system migrate
 epic doctor
 ```
 
@@ -415,7 +463,9 @@ epic doctor
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Issues and PRs welcome. When referencing features in issues or PRs, use the `EC-FXXX` prefix for `epic` platform features, and `FXXX` for features in a user's generated project. These namespaces must never be mixed.
+Issues and PRs welcome at [github.com/VisualDigitalAgency/Epic-claude](https://github.com/VisualDigitalAgency/Epic-claude/issues).
+
+When referencing features in issues or PRs, use the `EC-FXXX` prefix for `epic` platform features, and `FXXX` for features in a user's generated project. These namespaces must never be mixed.
 
 ---
 
