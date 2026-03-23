@@ -167,11 +167,14 @@ nav.scrolled {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 8rem 2rem 4rem;
-  max-width: 1100px;
-  margin: 0 auto;
+  padding: 0;
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
+  width: 100%;
+}
+#hero .container {
+  padding: 8rem 2rem 4rem;
+  width: 100%;
 }
 
 .hero-eyebrow {
@@ -197,13 +200,14 @@ nav.scrolled {
 
 .hero-headline {
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 8vw, 7.5rem);
+  font-size: clamp(3rem, 6.5vw, 7.5rem);
   font-weight: 800;
-  line-height: 0.95;
+  line-height: 1;
   letter-spacing: -0.03em;
   color: var(--white);
   margin-bottom: 2rem;
   hyphens: none;
+  max-width: 100%;
   opacity: 0;
   animation: fadeUp 0.6s ease 0.2s forwards;
 }
@@ -211,13 +215,6 @@ nav.scrolled {
 .hero-headline .dim-word { color: var(--muted); }
 .hl-line {
   display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
-}
-/* On mobile, allow hl-line to wrap if truly needed */
-@media (max-width: 480px) {
-  .hl-line { white-space: normal; }
 }
 
 .hero-sub {
@@ -281,6 +278,8 @@ nav.scrolled {
   opacity: 0;
   animation: fadeUp 0.6s ease 0.6s forwards;
   position: relative;
+  max-width: 100%;
+  overflow: hidden;
 }
 .terminal-wrap::before {
   content: '';
@@ -344,7 +343,7 @@ nav.scrolled {
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
 /* ─── SECTION BASE ──────────────────────────────────────── */
-section { padding: 7rem 2rem; overflow-x: hidden; }
+section { padding: 7rem 2rem; }
 .container { max-width: 1100px; margin: 0 auto; }
 .section-label {
   font-family: var(--font-mono);
@@ -1014,7 +1013,7 @@ footer {
   .demo-inner { grid-template-columns: 1fr; }
   .install-inner { grid-template-columns: 1fr; gap: 3rem; }
   .install-right { position: static; }
-  .hero-headline { font-size: clamp(2.8rem, 6.5vw, 5rem); hyphens: none; }
+  .hero-headline { font-size: clamp(2.5rem, 5.5vw, 5rem); }
   .terminal-body { font-size: 0.78rem; }
 }
 
@@ -1028,11 +1027,12 @@ footer {
   .nav-links { display: none; }
 
   /* Hero */
-  #hero { padding: 6rem 1.25rem 3rem; min-height: 100svh; overflow-x: hidden; }
+  #hero { min-height: 100svh; }
+  #hero .container { padding: 6rem 1.25rem 3rem; }
   .hero-headline {
     font-size: clamp(1.75rem, 7.5vw, 3rem);
     line-height: 1.05;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
     hyphens: none;
     word-break: normal;
     overflow-wrap: normal;
@@ -1068,8 +1068,9 @@ footer {
 
 /* ─── RESPONSIVE — 400px very small ─────────────────────── */
 @media (max-width: 400px) {
+  #hero .container { padding: 5rem 1rem 2.5rem; }
   .hero-headline {
-    font-size: clamp(1.55rem, 6.8vw, 2.2rem);
+    font-size: clamp(1.55rem, 7vw, 2.2rem);
     letter-spacing: -0.01em;
     hyphens: none;
     word-break: normal;
