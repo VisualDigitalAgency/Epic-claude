@@ -1,225 +1,376 @@
-Here's the complete install and usage guide for EPIC-Claude.
+# epic-claude
+
+> CLI tool for generating and managing software architecture using AI
+
+[![CI](https://github.com/epic-claude/epic-claude/actions/workflows/ci.yml/badge.svg)](https://github.com/epic-claude/epic-claude/actions)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/epic-claude.svg)](https://pypi.org/project/epic-claude/)
+
+Describe what you want to build. `epic` asks the right questions, proposes a tech stack, generates a complete architecture, and syncs it into your project so Claude Code always has full context.
+
+---
+
+## What it does
+
+```
+epic plan "SaaS invoicing app"
+  │
+  ├── Asks clarifying questions (scale, database, auth, deployment)
+  ├── Proposes a tech stack — you confirm or adjust
+  ├── Validates a 6-point pre-generation checklist
+  ├── Generates 5 architecture artifacts (PRD, API spec, schema, stack, boundaries)
+  ├── Validates every artifact before writing to disk
+  └── Syncs architecture context into CLAUDE.md
+```
+
+After that, Claude Code opens your project and builds with full architectural awareness — no context loss, no guessing, no drift.
+
+---
+
+## Generated artifacts
+
+Every artifact is validated before it touches disk. All fail together or succeed together — no partial writes.
+
+| File | Format | What it contains |
+|---|---|---|
+| `prd.md` | Markdown | Feature-by-feature PRD with F-IDs, acceptance criteria, API endpoints, DB tables |
+| `api.yaml` | OpenAPI 3.1 | Full API spec validated by `openapi-spec-validator` |
+| `schema.sql` | SQL | Complete schema with FK integrity, validated by `sqlglot` |
+| `techstack.md` | Markdown | Confirmed stack with rationale and alternatives considered |
+| `boundaries.md` | Mermaid | Service boundary map with ownership rules |
 
 ---
 
 ## Install
 
-### Option 1 — pipx (recommended, isolated)
+### Recommended — pipx
 
 ```bash
-# Install pipx if you don't have it
 pip install --user pipx && pipx ensurepath
-
-# Install from the wheel file
-pipx install epic_claude-1.0.0-py3-none-any.whl
-
-# Verify
-epic-claude version
+pipx install epic-claude
+epic version
 ```
 
-### Option 2 — pip (if you prefer your current env)
+### Alternative — uv
 
 ```bash
-pip install epic_claude-1.0.0-py3-none-any.whl
+uv tool install epic-claude
+```
+
+### Alternative — pip
+
+```bash
+pip install epic-claude
+```
+
+**Why pipx?** Global CLI tools should be isolated. pipx gives `epic` its own environment — no conflicts with your project venv, ever.
+
+### PATH not found after install?
+
+```bash
+pipx ensurepath
+source ~/.bashrc    # or ~/.zshrc, or restart terminal
 ```
 
 ---
 
-## First-time Setup
+## First-time setup
 
 ```bash
-# 1. Initialise the global registry (~/.epic-claude/)
-epic-claude init
+# 1. Initialise global registry (~/.epic/)
+epic init
 
-# 2. Set your Anthropic API key (required for LLM calls)
-export ANTHROPIC_API_KEY=your-key-here
-
-# Add to ~/.bashrc or ~/.zshrc so it persists:
-echo 'export ANTHROPIC_API_KEY=your-key-here' >> ~/.bashrc
+# 2. Set your Anthropic API key — never stored in config files
+export ANTHROPIC_API_KEY=sk-ant-...
+# Add to ~/.bashrc or ~/.zshrc to persist
 
 # 3. Health check — confirms everything is wired
-epic-claude doctor
+epic doctor
 ```
 
-**Expected `doctor` output:**
+`epic doctor` output when everything is ready:
+
 ```
-  ✓ OK  Python version: 3.11.x
-  ✓ OK  Home directory: ~/.epic-claude
-  ✓ OK  config.json
+  ✓ OK   Python version:    3.11.x
+  ✓ OK   Home directory:    ~/.epic
+  ✓ OK   config.json
   ✓ Set  ANTHROPIC_API_KEY: sk-...xxxx
-  ✓ Up to date  Schema versions: registry v1
+  ✓ OK   epic in PATH:      /home/user/.local/bin/epic
+  ✓ OK   Schema versions:   v1
 ```
 
 ---
 
-## Add to Claude Code
+## Connect to Claude Code
 
-This is what makes EPIC-Claude work as an MCP server — Claude Code can call all 18 tools directly.
-
-```bash
-# Edit Claude Code's settings file
-nano ~/.claude/settings.json
-```
-
-Add:
+Add to `~/.claude/settings.json`:
 
 ```json
 {
   "mcpServers": {
-    "epic-claude": {
-      "command": "epic-claude",
-      "args": ["serve"]
+    "epic": {
+      "command": "epic",
+      "args": ["system", "serve"]
     }
   }
 }
 ```
 
-Restart Claude Code. You'll see EPIC-Claude appear in the MCP tools panel.
+Restart Claude Code. `epic` appears in the MCP tools panel. Claude Code can now call all 18 architecture tools directly mid-conversation.
 
 ---
 
-## Start Your First Project
+## Quickstart
 
-### From Claude Code (recommended)
-
-Once the MCP server is connected, just describe your project in chat:
-
-```
-I want to build a multi-tenant SaaS invoicing app in Python with FastAPI
-```
-
-Claude Code will automatically call:
-1. `project_start` → detects/creates project, begins clarification
-2. `clarify_answer` → you answer questions about scale, auth, DB, deployment
-3. `stack_decide` / `stack_confirm` → review and lock the tech stack
-4. `architect_generate` → generates all 5 architecture artifacts
-5. `context_sync` → writes architecture context to your `CLAUDE.md`
-
-### From the CLI
+### Start a new project
 
 ```bash
-# Navigate to your project folder first
-cd ~/projects/my-saas-app
+cd ~/projects/my-app
 
-# Start a new project (interactive flow)
-epic-claude plan "multi-tenant SaaS invoicing app in Python with FastAPI"
-
-# Check what was generated
-epic-claude status
-
-# Sync architecture context to CLAUDE.md
-epic-claude sync
-
-# See the generated artifacts
-ls .epic-claude/    # project.json lives here
-cat CLAUDE.md       # architecture context synced here
+epic plan "multi-tenant SaaS invoicing app in Python"
 ```
 
----
+`epic` will:
 
-## Day-to-Day Usage
+1. Ask targeted questions about scale, database, auth, and deployment
+2. Infer what it can from your description — never re-asks what you already said
+3. Propose a full tech stack — you confirm or adjust individual decisions
+4. Generate all 5 architecture artifacts
+5. Write context into `CLAUDE.md` — Claude Code reads this automatically
+
+The whole flow takes 2–3 minutes for a typical project.
+
+### Non-interactive (CI/CD)
 
 ```bash
-# See all projects
-epic-claude projects list
+epic plan --config requirements.yaml --yes
+```
 
-# Check active project status
-epic-claude status
+`requirements.yaml`:
 
-# View the confirmed tech stack
-epic-claude stack show
-
-# Change one stack decision (no re-clarification needed)
-epic-claude stack adjust --category database --name MySQL --rationale "Client prefers MySQL"
-
-# Regenerate all architecture artifacts
-epic-claude generate
-
-# Regenerate just one artifact
-epic-claude generate --scope prd
-
-# Sync updated architecture to CLAUDE.md
-epic-claude sync
-
-# Sync with task context (focuses the managed section)
-epic-claude sync --task "implement the payments feature"
-
-# Preview what sync would write without writing
-epic-claude sync --dry-run
-
-# Roll back CLAUDE.md to previous version
-epic-claude sync --rollback
-
-# Search your architecture decisions
-epic-claude memory search "JWT auth"
-
-# List all decisions
-epic-claude memory list --type decision
-
-# Show full entry
-epic-claude memory show <id>
+```yaml
+description: "multi-tenant SaaS invoicing app in Python"
+answers:
+  scale: "1k-10k users"
+  database: "PostgreSQL"
+  deployment: "Railway"
+  auth: "JWT"
 ```
 
 ---
 
-## Project Structure After First Run
+## Supported project types
+
+| Type | Description |
+|---|---|
+| `backend_saas` | Multi-tenant API, subscriptions, billing, auth |
+| `rest_api` | Resource-oriented API, CRUD, webhooks, versioning |
+| `fullstack_web` | Frontend + backend + database + auth |
+
+Mobile, infra, data pipelines, and AI/ML projects are planned for v2.
+
+---
+
+## Command reference
+
+### Core workflow
+
+```bash
+epic plan "<description>"          # Full flow: clarify → stack → generate → sync
+epic plan --config file.yaml       # Non-interactive (CI)
+epic plan --yes                    # Skip confirmations
+epic plan --no-sync                # Stop before CLAUDE.md sync
+
+epic generate                      # Re-run architect agent
+epic generate --scope prd          # Regenerate one artifact
+epic generate --yes                # Skip assumption prompts (CI)
+
+epic sync                          # Sync architecture to CLAUDE.md
+epic sync --task "build payments"  # Task-scoped context
+epic sync --dry-run                # Preview without writing
+epic sync --force                  # Overwrite manual edits
+epic sync --rollback               # Restore from last backup
+
+epic status                        # Project health dashboard
+```
+
+### Tech stack
+
+```bash
+epic tech show                     # Show current confirmed stack
+epic tech confirm                  # Lock the proposed stack
+epic tech adjust                   # Change one category interactively
+epic tech adjust --category database --name MySQL --rationale "client preference"
+```
+
+### Projects
+
+```bash
+epic project list                  # List all registered projects
+epic project switch                # Interactive project switcher
+epic project switch <id-prefix>    # Switch by ID prefix or path
+```
+
+### System
+
+```bash
+epic system serve                  # Start MCP server (stdio)
+epic system migrate                # Run DB schema migrations
+epic system migrate --check        # Check for pending migrations
+epic system doctor                 # Health check
+```
+
+### Debug
+
+```bash
+epic debug memory list             # List memory entries
+epic debug memory list --type decision
+epic debug memory search "JWT"     # Full-text search
+epic debug memory show <id>        # Full entry detail
+epic debug artifacts               # List generated artifacts
+```
+
+### Global options
+
+All commands accept:
+
+```bash
+--json          # Raw JSON output (scripting-friendly)
+--quiet         # Suppress decorative output
+--project-id    # Override auto-detection
+```
+
+---
+
+## How it works
+
+### Project detection
+
+`epic` looks for `.epic/project.json` in the current directory and parent directories. If found — you're in a project. If not found, commands that require a project will tell you exactly what to do:
 
 ```
-~/projects/my-saas-app/
-├── CLAUDE.md                    ← synced architecture context (managed section)
-├── .epic-claude/
-│   └── project.json             ← project identity + schema version
+No epic project found in this directory.
 
-~/.epic-claude/                  ← global state (all projects)
-├── registry.db                  ← project index
-├── config.json                  ← settings
-├── server.log                   ← MCP server log
+Start here:
+  epic init
+  epic plan "describe your project"
+```
+
+No silent fallbacks. No wrong-project accidents.
+
+### Execution model
+
+`epic` is **per-command, per-invocation** — no background daemon, no ports, no zombie processes.
+
+```
+Claude Code  ──JSON-RPC 2.0──▶  epic system serve  ──▶  exits on disconnect
+CLI user     ──────────────▶  epic <command>  ──▶  runs → writes → exits
+```
+
+Transport is stdin/stdout. Every write is atomic (`tmpfile → rename`). Safe to kill at any time.
+
+### Validation gates
+
+Three gates run before anything reaches disk:
+
+| Gate | When | What it checks |
+|---|---|---|
+| Gate 1 | Before generation | 6-point checklist: project type, deployment, auth, scale, multi-tenancy, data ownership |
+| Gate 2 | After generation, before write | Per-artifact validation (OpenAPI, SQL syntax, F-ID uniqueness, Mermaid syntax, stack completeness, SHA256) |
+| Gate 3 | After write | Re-reads each file, verifies checksum matches — rolls back on mismatch |
+
+All 5 artifacts pass Gate 2 or none are written.
+
+### CLAUDE.md sync
+
+`epic` writes only to a clearly delimited managed section inside `CLAUDE.md`:
+
+```
+<!-- EPIC-CLAUDE-MANAGED-START | version:4 | synced:2026-03-23T... | hash:a3f9... -->
+## Architecture Context (do not edit manually)
+...
+<!-- EPIC-CLAUDE-MANAGED-END -->
+```
+
+Rules:
+- Content outside the markers is **never read, never modified, never deleted**
+- Every sync creates a timestamped backup first (30-day retention)
+- If you edit inside the markers manually, `epic sync` detects it and prompts:
+
+```
+⚠  Manual edit detected inside managed section.
+   epic sync --force     → overwrite with current architecture
+   epic sync --rollback  → restore from backup
+```
+
+### State layout
+
+```
+~/.epic/                            ← Global registry (one install, all projects)
+├── registry.db                     ← Project index
+├── config.json                     ← Settings (no credentials ever stored here)
+├── server.log                      ← MCP server log (auto-rotated)
 └── projects/
-    └── <project-id>/
-        ├── memory.db            ← source of truth (decisions, artifacts)
-        ├── architecture/
-        │   ├── prd.md           ← feature-by-feature PRD
-        │   ├── api.yaml         ← OpenAPI 3.1 spec
-        │   ├── schema.sql       ← database schema
-        │   ├── techstack.md     ← confirmed stack
-        │   └── boundaries.md   ← service boundary map + Mermaid diagram
-        └── claude_md_backups/   ← timestamped CLAUDE.md backups
+    └── <project-uuid>/
+        ├── memory.db               ← Source of truth: all decisions, artifacts
+        ├── project.json            ← Project metadata + schema versions
+        ├── architecture/           ← Generated artifacts (derived from memory.db)
+        │   ├── prd.md
+        │   ├── api.yaml
+        │   ├── schema.sql
+        │   ├── techstack.md
+        │   └── boundaries.md
+        └── claude_md_backups/      ← Pre-sync backups (30-day retention)
+
+your-project/
+└── .epic/
+    └── project.json                ← Local marker (what epic uses for detection)
 ```
+
+State authority (highest → lowest): `memory.db → architecture/ → CLAUDE.md → registry.db`
+
+`CLAUDE.md` is always derived. Delete it — `epic sync` rebuilds it in seconds.
 
 ---
 
-## CI/CD Usage
+## MCP tools
 
-All interactive prompts can be suppressed for automation:
+When connected via Claude Code, all 18 tools are available:
 
-```bash
-# Non-interactive: skip assumption confirmation
-epic-claude generate --yes
-
-# Force sync without manual-edit prompt
-epic-claude sync --force
-
-# All output as JSON (for scripting)
-epic-claude status --json
-epic-claude stack show --json
-
-# Run schema migrations after upgrade
-epic-claude migrate
-```
+| Tool | What it does |
+|---|---|
+| `project_start` | Begin a project — detection → clarification |
+| `clarify_answer` | Submit answers (including follow-ups for unknowns) |
+| `clarify_status` | Check clarification completeness |
+| `clarify_revise` | Revise an answer before proceeding |
+| `stack_decide` | Generate proposed tech stack from clarification |
+| `stack_confirm` | Lock the tech stack — required before generation |
+| `stack_adjust` | Change one category without re-clarifying |
+| `stack_get` | Retrieve current confirmed stack |
+| `architect_generate` | Run checklist → generate → validate → persist |
+| `architect_regenerate` | Regenerate all or one artifact type |
+| `artifact_get` | Get a specific artifact by type |
+| `artifact_list` | List artifacts with validation status |
+| `memory_write` | Store an architectural decision with confidence level |
+| `memory_recall` | Query memory (full-text + tag + type + confidence) |
+| `memory_list` | List entries with filters |
+| `memory_supersede` | Mark a decision outdated (never deletes — full audit trail) |
+| `context_sync` | Run full sync state machine → write CLAUDE.md |
+| `context_recall` | Get task-relevant context without writing |
 
 ---
 
 ## Upgrading
 
 ```bash
-# Install new version
-pipx install --force epic_claude-1.1.0-py3-none-any.whl
+pipx upgrade epic-claude
 
-# Always run migrate after upgrade to apply any schema changes
-epic-claude migrate
+# Always run after upgrade — applies any schema changes
+epic system migrate
 
-# Check everything still works
-epic-claude doctor
+# Confirm everything still works
+epic doctor
 ```
 
 ---
@@ -228,10 +379,39 @@ epic-claude doctor
 
 | Problem | Fix |
 |---|---|
-| `epic-claude: command not found` | Run `pipx ensurepath` then restart terminal |
-| `ANTHROPIC_API_KEY is not set` | `export ANTHROPIC_API_KEY=your-key` |
-| `No project found in this directory` | `cd` to your project root, or run `epic-claude init` then `epic-claude plan` |
-| `Stack not confirmed` | Run `epic-claude stack show` then `epic-claude stack confirm` |
-| `Manual edit detected` | Either `epic-claude sync --force` to overwrite, or move your edits outside the managed section markers |
-| Schema mismatch after upgrade | Run `epic-claude migrate` |
-| Corrupted CLAUDE.md | Run `epic-claude sync --rollback` |
+| `epic: command not found` | `pipx ensurepath` then restart terminal |
+| `ANTHROPIC_API_KEY is not set` | `export ANTHROPIC_API_KEY=sk-ant-...` |
+| `No epic project found` | `cd` to project root, or run `epic init` then `epic plan` |
+| Stack not confirmed error | `epic tech show` then `epic tech confirm` |
+| Manual edit detected | `epic sync --force` to overwrite, or move edits outside the managed section markers |
+| Schema mismatch after upgrade | `epic system migrate` |
+| CLAUDE.md corrupted | `epic sync --rollback` |
+| Wrong project detected | `epic --project-id <id> <command>` |
+
+---
+
+## Design principles
+
+**Clarify first.** Never assume. Ask exactly one follow-up for unknown answers. Document everything it can't know.
+
+**Validate before write.** No artifact reaches disk without passing all three gates. If any gate fails, nothing is written. Existing files are preserved.
+
+**State has one owner.** `memory.db` is the source of truth. Every other file is derived from it and can be reconstructed.
+
+**Sync is safe by design.** Always backup before write. Only touch the managed section. Verify checksum after write. Roll back on mismatch.
+
+**Fail loudly, recover cleanly.** No silent failures. Every error is logged, structured, and actionable. Every failure has a recovery path.
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Issues and PRs welcome. When referencing features in issues or PRs, use the `EC-FXXX` prefix for `epic` platform features, and `FXXX` for features in a user's generated project. These namespaces must never be mixed.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
